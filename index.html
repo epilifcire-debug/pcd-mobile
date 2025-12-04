@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema PCD — Eventos</title>
+
+  <!-- CSS minificado -->
+  <link rel="stylesheet" href="style.min.css" />
+
+  <!-- Biblioteca PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo Pré-Caju" class="logo" />
+    <h1>Sistema PCD — Eventos</h1>
+    <p>Gestão de Pessoas, Eventos e Documentos</p>
+  </header>
+
+  <button id="toggle-theme">🌙</button>
+
+  <main>
+    <!-- Login -->
+    <section id="login-screen" class="card">
+      <h2>Acesso ao Sistema</h2>
+      <p style="font-size:12px;opacity:0.8;">
+        E-mail padrão: <b>admin@pcd.com</b> &nbsp; Senha: <b>1234</b>
+      </p>
+      <label>E-mail</label>
+      <input id="login-email" type="email" placeholder="seuemail@exemplo.com" />
+      <label>Senha</label>
+      <input id="login-pass" type="password" placeholder="••••••••" />
+      <button id="btn-login" class="primary" style="margin-top:10px;">Entrar</button>
+      <p id="login-msg" style="font-size:13px;color:red;display:none;"></p>
+    </section>
+
+    <!-- Aplicação -->
+    <section id="app" class="hidden">
+      <div class="nav">
+        <div class="nav-left">
+          <button data-target="card-eventos" class="primary">Eventos</button>
+          <button data-target="card-pessoas" class="ghost">Pessoas</button>
+          <button data-target="card-relatorios" class="ghost">Relatórios</button>
+          <button data-target="card-admin" id="nav-admin" class="ghost hidden">Admin</button>
+        </div>
+        <button id="btn-logout" class="ghost">🚪 Sair</button>
+      </div>
+
+      <!-- Cards -->
+      <section id="card-eventos" class="card"></section>
+      <section id="card-pessoas" class="card hidden"></section>
+      <section id="card-relatorios" class="card hidden"></section>
+      <section id="card-admin" class="card hidden"></section>
+    </section>
+  </main>
+
+  <!-- Script principal minificado -->
+  <script src="app.min.js"></script>
+</body>
+</html>
