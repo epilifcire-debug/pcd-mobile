@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PCD Mobile — Leitura de Dados</title>
+  <style>
+    :root {
+      --bg: #f8f8f8;
+      --card: #ffffff;
+      --text: #222;
+      --accent: #8338ec;
+      --accent2: #ff006e;
+      --accent3: #ffbe0b;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #222;
+        --card: #333;
+        --text: #eee;
+        --shadow: rgba(0, 0, 0, 0.4);
+      }
+    }
+
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    header {
+      text-align: center;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      color: #fff;
+      padding: 12px 8px;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    h1 {
+      margin: 6px 0;
+      font-size: 22px;
+    }
+
+    main {
+      padding: 14px;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 3px 10px var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    button {
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+      border: none;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .hidden { display: none; }
+
+    .list {
+      margin-top: 10px;
+    }
+
+    .item {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 4px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .item { border-bottom: 1px solid #444; }
+    }
+
+    .status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 6px;
+    }
+
+    .ok { background: #1dd85f; box-shadow: 0 0 8px #1dd85f; }
+    .bad { background: #ff3b3b; box-shadow: 0 0 8px #ff3b3b; }
+
+    .msg {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+      padding: 16px;
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📱 Sistema PCD — Versão Mobile</h1>
+    <p style="font-size:13px;margin:4px 0;">Leitura e consulta dos dados</p>
+  </header>
+
+  <main>
+    <section class="card" id="upload-card">
+      <h2>📁 Importar Backup</h2>
+      <p style="font-size:14px;">Selecione o arquivo <strong>backup-pcd.json</strong> exportado do sistema desktop:</p>
+      <input type="file" id="fileInput" accept=".json" />
+      <div id="msg" class="msg"></div>
+    </section>
+
+    <section class="card hidden" id="data-card">
+      <h2>📋 Visualização de Dados</h2>
+
+      <label>Filtrar por evento</label>
+      <select id="select-evento">
+        <option value="">Todos os eventos</option>
+      </select>
+
+      <button id="btnVerEventos">📅 Ver Eventos</button>
+      <button id="btnVerPessoas">👥 Ver Pessoas</button>
+      <button id="btnVerRelatorio">🧾 Relatório por Evento</button>
+
+      <div id="eventos" class="list hidden"></div>
+      <div id="pessoas" class="list hidden"></div>
+      <div id="relatorio" class="list hidden"></div>
+    </section>
+  </main>
+
+  <footer>
+    Sistema PCD Mobile — Apenas Leitura<br>
+    Importação local via backup JSON
+  </footer>
+
+  <script>
+    let dados = { eventos: [], pessoas: [], usuarios: [] };
+
+    const fileInput = document.getElementById("fileInput");
+    const msg = document.getElementById("msg");
+    const dataCard = document.getElementById("data-card");
+    const selectEvento = document.getElementById("select-evento");
+    const eventosDiv = document.getElementById("eventos");
+    const pessoasDiv = document.getElementById("pessoas");
+    const relatorioDiv = document.getElementById("relatorio");
+
+    fileInput.addEventListener("change", function() {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const obj = JSON.parse(e.target.result);
+          if (!obj.eventos || !obj.pessoas) throw new Error();
+          dados = obj;
+          msg.textContent = "✅ Backup carregado com sucesso!";
+          msg.style.color = "green";
+          document.getElementById("upload-card").classList.add("hidden");
+          dataCard.classList.remove("hidden");
+          atualizarSelectEventos();
+        } catch {
+          msg.textContent = "❌ Arquivo de backup inválido.";
+          msg.style.color = "red";
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function atualizarSelectEventos() {
+      selectEvento.innerHTML = '<option value="">Todos os eventos</option>';
+      const eventosOrdenados = [...dados.eventos].sort((a,b)=>a.nome.localeCompare(b.nome,"pt",{sensitivity:"base"}));
+      eventosOrdenados.forEach(ev => {
+        const op = document.createElement("option");
+        op.value = ev.id;
+        op.textContent = ev.nome;
+        selectEvento.appendChild(op);
+      });
+    }
+
+    document.getElementById("btnVerEventos").addEventListener("click", () => {
+      mostrarLista("eventos");
+      eventosDiv.innerHTML = "<h3>📅 Eventos</h3>";
+      const evs = [...dados.eventos].sort((a,b)=>{
+        if (!a.data && !b.data) return 0;
+        if (!a.data) return 1;
+        if (!b.data) return -1;
+        return a.data.localeCompare(b.data);
+      });
+      evs.forEach(ev=>{
+        const d = ev.data ? ev.data.split("-").reverse().join("/") : "—";
+        eventosDiv.innerHTML += `<div class='item'><strong>${ev.nome}</strong><br>Data: ${d}<br>${ev.desc||""}</div>`;
+      });
+    });
+
+    document.getElementById("btnVerPessoas").addEventListener("click", () => {
+      mostrarLista("pessoas");
+      pessoasDiv.innerHTML = "<h3>👥 Pessoas Cadastradas</h3>";
+      const pessoasOrd = [...dados.pessoas].sort((a,b)=>a.nome.localeCompare(b.nome,"pt",{sensitivity:"base"}));
+      const idFiltro = selectEvento.value;
+      pessoasOrd
+        .filter(p => !idFiltro || (p.eventos||[]).includes(idFiltro))
+        .forEach(p => {
+          const ok = docsCompletos(p);
+          const eventos = (p.eventos||[])
+            .map(id => dados.eventos.find(e=>e.id===id)?.nome || "")
+            .filter(Boolean).join(", ");
+          pessoasDiv.innerHTML += `
+            <div class="item">
+              <strong>${p.nome}</strong> <span class="status ${ok?'ok':'bad'}"></span><br>
+              CPF: ${p.cpf}<br>
+              Evento(s): ${eventos||"—"}
+            </div>
+          `;
+        });
+    });
+
+    document.getElementById("btnVerRelatorio").addEventListener("click", () => {
+      mostrarLista("relatorio");
+      relatorioDiv.innerHTML = "<h3>🧾 Relatório por Evento</h3>";
+      const idFiltro = selectEvento.value;
+      const eventosFiltrados = idFiltro ? dados.eventos.filter(e=>e.id===idFiltro) : dados.eventos;
+      eventosFiltrados.forEach(ev=>{
+        relatorioDiv.innerHTML += `<h4>${ev.nome}</h4>`;
+        const pessoasEv = dados.pessoas
+          .filter(p => (p.eventos||[]).includes(ev.id) && docsCompletos(p))
+          .sort((a,b)=>a.nome.localeCompare(b.nome,"pt",{sensitivity:"base"}));
+        if (pessoasEv.length===0) {
+          relatorioDiv.innerHTML += `<p style='font-size:13px;opacity:0.7;'>Nenhuma pessoa completa neste evento.</p>`;
+        } else {
+          pessoasEv.forEach(p=>{
+            relatorioDiv.innerHTML += `
+              <div class="item">
+                <strong>${p.nome}</strong> — CPF: ${p.cpf}<br>
+                ASS: ____________________________ &nbsp;&nbsp; DATA: ____/____/____
+              </div>`;
+          });
+        }
+      });
+    });
+
+    function mostrarLista(nome) {
+      eventosDiv.classList.add("hidden");
+      pessoasDiv.classList.add("hidden");
+      relatorioDiv.classList.add("hidden");
+      document.getElementById(nome).classList.remove("hidden");
+    }
+
+    function docsCompletos(p) {
+      const d = p.docs || {};
+      return d.requerimento && d.foto && d.docOficial && d.laudo && d.cadUnico && d.comprovante;
+    }
+  </script>
+</body>
+</html>
