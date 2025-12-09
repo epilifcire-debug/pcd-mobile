@@ -293,11 +293,13 @@ td button {
   padding: 20px;
   border-radius: 12px;
   width: 90%;
-  max-width: 380px;
+  max-width: 400px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
-.modal h3 {
+.modal h3, .modal h4 {
   margin-bottom: 10px;
   text-align: center;
 }
@@ -311,6 +313,12 @@ td button {
 .modal .cancelar {
   background: #ccc;
   color: #333;
+}
+
+.modal hr {
+  margin: 15px 0;
+  border: 0;
+  border-top: 1px solid #ddd;
 }
 
 /* ============================================================
@@ -334,6 +342,10 @@ td button {
 
   .status-card {
     width: 45%;
+  }
+
+  .modal-content {
+    width: 92%;
   }
 }
 
