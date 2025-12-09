@@ -1,5 +1,5 @@
 /* ============================================================
-   🎨 PONTO DIGITAL - STYLE.CSS (v3 Atualizado)
+   🎨 PONTO DIGITAL - STYLE.CSS COMPLETO (v4 Atualizado)
    ============================================================ */
 
 body {
@@ -111,6 +111,7 @@ th, td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
   font-size: 13px;
+  text-align: center;
 }
 
 th {
@@ -250,7 +251,7 @@ th {
   opacity: 0.9;
 }
 
-/* ===== MODAL DE CADASTRO ===== */
+/* ===== MODAL DE CADASTRO E EDIÇÃO ===== */
 .btn-novo {
   background: linear-gradient(90deg, #a83279, #d38312);
   color: white;
@@ -287,6 +288,14 @@ th {
   box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 
+.modal-content h3 {
+  text-align: center;
+  margin-bottom: 15px;
+  background: linear-gradient(90deg, #a83279, #d38312);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -296,6 +305,39 @@ th {
 .modal-actions button.cancelar {
   background: #ccc;
   color: #333;
+}
+
+.modal-actions button.cancelar:hover {
+  background: #bbb;
+}
+
+/* ===== BOTÕES DE AÇÃO ===== */
+.btn-editar,
+.btn-excluir {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 6px;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.btn-editar {
+  color: #1976d2;
+}
+
+.btn-editar:hover {
+  transform: scale(1.2);
+  color: #0d47a1;
+}
+
+.btn-excluir {
+  color: #d32f2f;
+}
+
+.btn-excluir:hover {
+  transform: scale(1.2);
+  color: #b71c1c;
 }
 
 /* ===== RESPONSIVO ===== */
@@ -315,5 +357,9 @@ th {
 
   .logo-img {
     width: 80px;
+  }
+
+  .btn-editar, .btn-excluir {
+    font-size: 20px;
   }
 }
