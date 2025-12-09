@@ -1,291 +1,197 @@
-/* ============================================================
-   🌈 ESTILO PRINCIPAL - PONTO DIGITAL 2025
-   ============================================================ */
-
-/* ===== RESET ===== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", Arial, sans-serif;
-}
-
-body {
-  background: #f4f5f7;
-  color: #333;
-  overflow-x: hidden;
-}
-
-/* ============================================================
-   🌈 CABEÇALHO
-   ============================================================ */
-header {
+/* ========================================================= */
+/* 🌈 CABEÇALHO E LOGOS */
+/* ========================================================= */
+#header {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  background: linear-gradient(90deg, #6a11cb, #ff9800);
-  color: white;
+  right: 0;
+  background: linear-gradient(90deg, #5f2eea, #f5a623);
+  padding: 12px 10px;
+  color: #fff;
   text-align: center;
-  padding: 12px 0;
   z-index: 100;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
-header .header-content {
+.header-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-header .logo {
-  height: 45px;
-  width: auto;
+.logo {
+  height: 40px;
+  object-fit: contain;
 }
 
-header h1 {
-  font-size: 1.6rem;
-  letter-spacing: 1px;
-  font-weight: 600;
-}
-
-/* ============================================================
-   ⚙️ SEÇÕES
-   ============================================================ */
+/* ========================================================= */
+/* 🔐 LOGIN */
+/* ========================================================= */
 .section {
-  margin-top: 100px;
+  margin-top: 120px;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  padding: 40px 20px;
+  align-items: center;
 }
 
 .card {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  position: relative;
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 90%;
+  max-width: 400px;
 }
 
-/* ============================================================
-   🔘 BOTÕES
-   ============================================================ */
-button {
-  background: linear-gradient(90deg, #6a11cb, #ff9800);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
+.card h2, .card h3 {
+  text-align: center;
+  color: #333;
+}
+
+input, select, button {
   width: 100%;
-  transition: all 0.2s ease-in-out;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+button {
+  background: #5f2eea;
+  color: white;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: 0.3s ease;
 }
 
 button:hover {
-  opacity: 0.9;
-  transform: scale(1.02);
+  background: #491fc5;
 }
 
-.btn-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.func-opcoes {
-  margin-top: 15px;
-}
-
-.btn-add,
-.btn-export {
-  margin-top: 15px;
-  width: auto;
-  padding: 8px 14px;
-  font-size: 14px;
-}
-
-/* ============================================================
-   🚪 LOGOUT
-   ============================================================ */
-.btn-logout {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #e53935;
-  color: white;
-  font-weight: bold;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s ease;
-}
-
-.btn-logout:hover {
-  background: #c62828;
-  transform: scale(1.05);
-}
-
-/* ============================================================
-   📋 CAMPOS DE INPUT
-   ============================================================ */
-input,
-select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin: 6px 0;
-  font-size: 15px;
-}
-
-label {
-  display: block;
-  font-weight: 600;
-  margin-top: 8px;
-  text-align: left;
-}
-
-/* ============================================================
-   📢 MENSAGENS
-   ============================================================ */
 .msg-erro {
-  color: #e53935;
-  font-weight: 600;
-  margin-top: 10px;
+  color: red;
+  text-align: center;
+  margin-top: 8px;
 }
 
 .msg-alert {
-  background: #ffeb3b;
-  color: #333;
-  font-weight: bold;
-  border-radius: 8px;
+  background: #ffe2e2;
+  color: #d63c3c;
   padding: 10px;
+  border-radius: 8px;
   margin: 10px 0;
+  text-align: center;
 }
 
-/* ============================================================
-   👥 TABELA RH
-   ============================================================ */
-table {
-  width: 100%;
-  border-collapse: collapse;
+/* ========================================================= */
+/* 👷 FUNCIONÁRIO */
+/* ========================================================= */
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.func-opcoes {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-info {
   margin-top: 15px;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
 }
 
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  font-size: 14px;
-}
-
-th {
-  background: #6a11cb;
-  color: white;
-  text-transform: uppercase;
-}
-
-td button {
-  font-size: 13px;
-  padding: 5px 10px;
-  margin: 0 3px;
-  width: auto;
-}
-
-/* ============================================================
-   🧭 ABA DO PAINEL RH
-   ============================================================ */
+/* ========================================================= */
+/* 🧑‍💼 PAINEL RH / ADMIN */
+/* ========================================================= */
 .tab-nav {
   display: flex;
-  justify-content: center;
-  margin: 20px 0 10px;
   gap: 10px;
+  margin: 15px 0;
 }
 
 .tab-btn {
   flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
   background: #eee;
-  color: #333;
+  cursor: pointer;
   font-weight: 600;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  transition: all 0.2s;
 }
 
 .tab-btn.active {
-  background: linear-gradient(90deg, #6a11cb, #ff9800);
+  background: #5f2eea;
   color: white;
-  border: none;
 }
 
-/* ============================================================
-   💾 STATUS CARDS
-   ============================================================ */
-.status-cards {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+#tabela-funcionarios {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.status-card {
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 15px;
-  width: 130px;
+#tabela-funcionarios th, #tabela-funcionarios td {
+  padding: 10px;
+  border: 1px solid #ddd;
   text-align: center;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.status-section {
-  margin-top: 10px;
+.btn-add {
+  background: #f5a623;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
 }
 
-.foto-galeria {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+.btn-add:hover {
+  background: #e5940c;
 }
 
-.foto-galeria img {
-  width: 60px;
-  height: 60px;
+.btn-logout {
+  background: #d63c3c;
+  color: #fff;
+  padding: 8px 12px;
   border-radius: 6px;
-  object-fit: cover;
+  float: right;
+  margin-top: -45px;
+  margin-right: 10px;
 }
 
-/* ============================================================
-   🧾 MODAIS
-   ============================================================ */
+.btn-logout:hover {
+  background: #b02c2c;
+}
+
+/* ========================================================= */
+/* 🧾 MODAIS */
+/* ========================================================= */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
+  background: rgba(0,0,0,0.5);
+  display: none;
   justify-content: center;
+  align-items: center;
   z-index: 200;
 }
 
-.modal.oculto {
-  display: none;
+.modal:not(.oculto) {
+  display: flex;
 }
 
 .modal-content {
@@ -294,64 +200,62 @@ td button {
   border-radius: 12px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  max-height: 90vh;
-  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-.modal h3, .modal h4 {
-  margin-bottom: 10px;
+.modal-content h3 {
   text-align: center;
 }
 
 .modal-actions {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
   margin-top: 15px;
 }
 
-.modal .cancelar {
-  background: #ccc;
-  color: #333;
+.cancelar {
+  background: #999;
 }
 
-.modal hr {
-  margin: 15px 0;
-  border: 0;
-  border-top: 1px solid #ddd;
+.cancelar:hover {
+  background: #777;
 }
 
-/* ============================================================
-   📱 RESPONSIVIDADE
-   ============================================================ */
-@media (max-width: 768px) {
-  header .header-content {
-    flex-direction: column;
-    gap: 5px;
+/* ========================================================= */
+/* 📊 STATUS */
+/* ========================================================= */
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.status-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+
+/* ========================================================= */
+/* 📱 MOBILE */
+/* ========================================================= */
+@media (max-width: 600px) {
+  #header h1 {
+    font-size: 1.2rem;
   }
-
+  .logo {
+    height: 30px;
+  }
   .card {
     width: 95%;
+    padding: 20px;
   }
-
-  table th,
-  table td {
-    font-size: 12px;
-    padding: 6px;
+  .btn-group {
+    flex-direction: column;
   }
-
-  .status-card {
-    width: 45%;
-  }
-
-  .modal-content {
-    width: 92%;
-  }
-}
-
-/* ============================================================
-   🔒 VISIBILIDADE
-   ============================================================ */
-.oculto {
-  display: none !important;
 }
