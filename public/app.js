@@ -1,8 +1,10 @@
 // ============================================================
-// 🕒 PONTO DIGITAL - FRONTEND APP.JS (2025)
+// 🕒 PONTO DIGITAL - FRONTEND APP.JS FINAL (2025)
 // ============================================================
 
-const API_URL = window.location.origin;
+// 🔗 Conexão com o backend hospedado no Render
+const API_URL = "https://ponto-digital-d207.onrender.com";
+
 let token = null;
 let usuarioAtual = null;
 
@@ -39,6 +41,11 @@ document.getElementById("btn-login").addEventListener("click", async () => {
       loginSection.classList.add("oculto");
       painelRH.classList.remove("oculto");
       carregarAbaFuncionarios();
+
+      // Mostrar botão “Novo Admin” se for ADMIN
+      if (usuarioAtual.categoria === "ADMIN") {
+        document.getElementById("btn-novo-admin").classList.remove("oculto");
+      }
     } else {
       loginSection.classList.add("oculto");
       pontoSection.classList.remove("oculto");
@@ -84,57 +91,8 @@ async function verificarFerias() {
   }
 }
 
-// Modal férias
-const modalFerias = document.getElementById("modal-ferias");
-document.getElementById("btn-solicitar-ferias").addEventListener("click", async () => {
-  modalFerias.classList.remove("oculto");
-});
-
-document
-  .getElementById("btn-cancelar-ferias")
-  .addEventListener("click", () => modalFerias.classList.add("oculto"));
-
-document.getElementById("btn-enviar-ferias").addEventListener("click", async () => {
-  const tipo = document.getElementById("tipo-ferias").value;
-  if (!tipo) return alert("Selecione o tipo de férias.");
-
-  const resp = await fetch(API_URL + "/ferias/solicitar", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({ tipo }),
-  });
-
-  const data = await resp.json();
-  if (resp.ok) {
-    alert("✅ Solicitação enviada com sucesso!");
-    modalFerias.classList.add("oculto");
-  } else alert("Erro: " + data.error);
-});
-
 // ============================================================
-// 🔁 TROCA DE HORÁRIO
-// ============================================================
-const modalTroca = document.getElementById("modal-troca");
-document.getElementById("btn-trocar-horario").addEventListener("click", () =>
-  modalTroca.classList.remove("oculto")
-);
-document
-  .getElementById("btn-cancelar-troca")
-  .addEventListener("click", () => modalTroca.classList.add("oculto"));
-document.getElementById("btn-enviar-troca").addEventListener("click", async () => {
-  const parceiroEmail = document.getElementById("troca-email").value.trim();
-  const dataTroca = document.getElementById("troca-data").value;
-  if (!parceiroEmail || !dataTroca) return alert("Preencha o e-mail e a data.");
-
-  alert(`Solicitação de troca enviada para ${parceiroEmail} (${dataTroca})`);
-  modalTroca.classList.add("oculto");
-});
-
-// ============================================================
-// 📸 REGISTRO DE PONTO COM FOTO
+// 📸 REGISTRAR PONTO
 // ============================================================
 async function capturarFoto() {
   return new Promise((resolve, reject) => {
@@ -185,7 +143,7 @@ document.getElementById("btn-intervalo").addEventListener("click", () => {
 });
 
 // ============================================================
-// 🧩 PAINEL RH - FUNÇÕES
+// 🧑‍💼 PAINEL RH / ADMIN
 // ============================================================
 document.querySelectorAll(".tab-btn").forEach((btn) =>
   btn.addEventListener("click", () => {
@@ -193,9 +151,7 @@ document.querySelectorAll(".tab-btn").forEach((btn) =>
     document.querySelectorAll(".tab-content").forEach((t) => t.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(btn.dataset.tab).classList.add("active");
-
     if (btn.dataset.tab === "tab-funcionarios") carregarAbaFuncionarios();
-    if (btn.dataset.tab === "tab-status") carregarStatusAdmin();
   })
 );
 
@@ -263,19 +219,43 @@ document.getElementById("btn-salvar-func").addEventListener("click", async () =>
 });
 
 // ============================================================
-// ✏️ EDITAR FUNCIONÁRIO (com férias)
+// 👑 CRIAR NOVO ADMIN
 // ============================================================
-const modalEditar = document.getElementById("modal-editar");
-let funcionarioEditando = null;
+document.getElementById("btn-novo-admin").addEventListener("click", async () => {
+  const nome = prompt("Nome do novo administrador:");
+  const email = prompt("E-mail do novo administrador:");
+  if (!nome || !email) return alert("Dados incompletos.");
 
+  const resp = await fetch(API_URL + "/admin/criar-funcionario", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({
+      nome,
+      email,
+      cpf: "00000000000",
+      telefone: "00000000000",
+      categoria: "ADMIN",
+      dataAdmissao: new Date(),
+    }),
+  });
+
+  const data = await resp.json();
+  if (resp.ok) alert(`✅ Novo admin criado!\nSenha: ${data.senhaGerada}`);
+  else alert("Erro: " + (data.error || "Falha ao criar admin"));
+});
+
+// ============================================================
+// ✏️ EDITAR E EXCLUIR
+// ============================================================
 async function abrirModalEdicao(id) {
   const resp = await fetch(API_URL + "/admin/funcionarios", {
     headers: { Authorization: "Bearer " + token },
   });
   const data = await resp.json();
   const user = data.find((u) => u._id === id);
-  funcionarioEditando = user;
-
   document.getElementById("edit-nome").value = user.nome;
   document.getElementById("edit-email").value = user.email;
   document.getElementById("edit-telefone").value = user.telefone || "";
@@ -288,40 +268,9 @@ async function abrirModalEdicao(id) {
   document.getElementById("edit-ferias-fim").value = user.dataUltimasFeriasFim
     ? new Date(user.dataUltimasFeriasFim).toISOString().split("T")[0]
     : "";
-
   modalEditar.classList.remove("oculto");
 }
 
-document.getElementById("btn-cancelar-edicao").addEventListener("click", () => modalEditar.classList.add("oculto"));
-
-document.getElementById("btn-salvar-edicao").addEventListener("click", async () => {
-  const nome = document.getElementById("edit-nome").value.trim();
-  const email = document.getElementById("edit-email").value.trim();
-  const telefone = document.getElementById("edit-telefone").value.trim();
-  const categoria = document.getElementById("edit-categoria").value;
-  const turno = document.getElementById("edit-turno").value;
-  const feriasTipo = document.getElementById("edit-ferias-tipo").value;
-  const dataFeriasInicio = document.getElementById("edit-ferias-inicio").value;
-  const dataFeriasFim = document.getElementById("edit-ferias-fim").value;
-
-  const body = { nome, email, telefone, categoria, turno, feriasTipo, dataFeriasInicio, dataFeriasFim };
-
-  const resp = await fetch(API_URL + `/admin/funcionario/${funcionarioEditando._id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-    body: JSON.stringify(body),
-  });
-
-  if (resp.ok) {
-    alert("✅ Funcionário atualizado com sucesso!");
-    modalEditar.classList.add("oculto");
-    carregarAbaFuncionarios();
-  } else alert("Erro ao atualizar funcionário.");
-});
-
-// ============================================================
-// 🗑 EXCLUIR FUNCIONÁRIO
-// ============================================================
 async function excluirFuncionario(id) {
   if (!confirm("Tem certeza que deseja excluir?")) return;
   const resp = await fetch(API_URL + `/admin/funcionario/${id}`, {
@@ -333,21 +282,3 @@ async function excluirFuncionario(id) {
     carregarAbaFuncionarios();
   } else alert("Erro ao excluir funcionário.");
 }
-
-// ============================================================
-// 📊 STATUS RH
-// ============================================================
-async function carregarStatusAdmin() {
-  const resumoHTML = `
-    <div class="status-card">👥 Funcionários<br>Atualizado</div>
-    <div class="status-card">🕒 Pontos Hoje<br>-</div>
-    <div class="status-card">🌴 Férias Pendentes<br>-</div>
-    <div class="status-card">🕓 Atualizado<br>${new Date().toLocaleTimeString()}</div>
-  `;
-  document.getElementById("status-resumo").innerHTML = resumoHTML;
-}
-
-setInterval(() => {
-  const ativa = document.querySelector(".tab-content.active");
-  if (ativa && ativa.id === "tab-status") carregarStatusAdmin();
-}, 10000);
