@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
->
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +9,7 @@
 </head>
 <body>
 
-  <!-- ======= CABEÇALHO ======= -->
+  <!-- ===== CABEÇALHO ===== -->
   <header class="topo">
     <div class="logos">
       <img src="images.png" alt="Logo 1" class="logo-img" />
@@ -19,7 +18,7 @@
     <h1>Ponto Digital</h1>
   </header>
 
-  <!-- ======= LOGIN ======= -->
+  <!-- ===== LOGIN ===== -->
   <section id="login-section" class="tela">
     <div class="card">
       <h2>Login</h2>
@@ -30,7 +29,7 @@
     </div>
   </section>
 
-  <!-- ======= FUNCIONÁRIO ======= -->
+  <!-- ===== FUNCIONÁRIO ===== -->
   <section id="ponto-section" class="tela oculto">
     <div class="card">
       <h2 id="boas-vindas">Olá, Funcionário</h2>
@@ -47,10 +46,11 @@
     </div>
   </section>
 
-  <!-- ======= PAINEL RH ======= -->
+  <!-- ===== PAINEL RH ===== -->
   <section id="painel-rh" class="tela oculto">
     <div class="painel">
       <h2>Painel RH / Administrativo</h2>
+
       <div class="tabs">
         <button class="tab-btn active" data-tab="tab-funcionarios">Funcionários</button>
         <button class="tab-btn" data-tab="tab-pontos">Registros de Ponto</button>
@@ -72,13 +72,14 @@
               <th>Categoria</th>
               <th>Turno</th>
               <th>Admissão</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <!-- ===== MODAL DE CADASTRO ===== -->
+      <!-- ===== MODAL CADASTRO ===== -->
       <div id="modal-cadastro" class="modal oculto">
         <div class="modal-content">
           <h3>Novo Funcionário</h3>
@@ -103,25 +104,45 @@
         </div>
       </div>
 
-      <!-- ===== PONTOS ===== -->
+      <!-- ===== MODAL EDIÇÃO ===== -->
+      <div id="modal-editar" class="modal oculto">
+        <div class="modal-content">
+          <h3>Editar Funcionário</h3>
+          <input id="edit-nome" placeholder="Nome completo" />
+          <input id="edit-email" placeholder="E-mail" />
+          <input id="edit-telefone" placeholder="Telefone" />
+          <select id="edit-categoria">
+            <option value="RH">RH</option>
+            <option value="VENDEDOR">Vendedor</option>
+          </select>
+          <select id="edit-turno">
+            <option value="">Turno</option>
+            <option value="MANHA">Manhã</option>
+            <option value="TARDE">Tarde</option>
+          </select>
+          <div class="modal-actions">
+            <button id="btn-salvar-edicao">Salvar Alterações</button>
+            <button id="btn-cancelar-edicao" class="cancelar">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OUTRAS ABAS ===== -->
       <div id="tab-pontos" class="tab-content">
         <h3>Registros de Ponto</h3>
-        <p>Em breve: filtro por data e funcionário.</p>
+        <p>Filtro e histórico serão exibidos aqui.</p>
       </div>
 
-      <!-- ===== FÉRIAS ===== -->
       <div id="tab-ferias" class="tab-content">
         <h3>Solicitações de Férias</h3>
-        <p>Gerenciamento de pedidos pendentes em breve.</p>
+        <p>Em breve: aprovar e gerenciar férias.</p>
       </div>
 
-      <!-- ===== BANCO DE HORAS ===== -->
       <div id="tab-banco" class="tab-content">
         <h3>Banco de Horas</h3>
-        <p>Visualização consolidada em breve.</p>
+        <p>Resumo consolidado será exibido aqui.</p>
       </div>
 
-      <!-- ===== STATUS ADMIN ===== -->
       <div id="tab-status" class="tab-content">
         <div class="status-header">
           <h3>Status Administrativo</h3>
@@ -132,7 +153,7 @@
         <h4>Logs Recentes</h4>
         <ul id="status-logs" class="log-list"></ul>
         <hr class="divider" />
-        <h4>Últimas Fotos de Ponto</h4>
+        <h4>Últimas Fotos</h4>
         <div id="status-fotos" class="foto-grid"></div>
       </div>
     </div>
