@@ -253,11 +253,6 @@ app.get("/admin/funcionarios", auth, async (req, res) => {
   res.json(lista);
 });
 
-app.get("/admin/banco-horas", auth, async (req, res) => {
-  const users = await User.find();
-  res.json(users.map((u) => ({ nome: u.nome, categoria: u.categoria, saldoMin: 0 })));
-});
-
 // ============================================================
 // 📊 STATUS ADMINISTRATIVO
 // ============================================================
@@ -275,7 +270,6 @@ app.get("/admin/status", auth, async (req, res) => {
   const logsRecentes = await Ponto.find()
     .sort({ dataHora: -1 })
     .limit(10)
-    .populate("userId", "nome")
     .then((pontos) =>
       pontos.map((p) => `${p.tipo.toUpperCase()} - ${p.dataHora.toLocaleString()} (${p.fotoUrl ? "📷" : "—"})`)
     );
@@ -293,6 +287,51 @@ app.get("/admin/status", auth, async (req, res) => {
     fotosRecentes,
     ultimaAtualizacao: new Date().toISOString(),
   });
+});
+
+// ============================================================
+// 📦 EXPORTAÇÃO CSV
+// ============================================================
+app.get("/admin/exportar", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!["RH", "ADMIN"].includes(user.categoria))
+      return res.status(403).json({ error: "Acesso negado" });
+
+    const totalUsers = await User.countDocuments();
+    const pontosHoje = await Ponto.countDocuments({
+      dataHora: { $gte: new Date().setHours(0, 0, 0, 0) },
+    });
+    const feriasPendentes = await Ferias.countDocuments({ status: "pendente" });
+
+    const logsRecentes = await Ponto.find()
+      .sort({ dataHora: -1 })
+      .limit(10)
+      .then((pontos) =>
+        pontos.map(
+          (p) =>
+            `${p.tipo.toUpperCase()};${new Date(p.dataHora).toLocaleString()};${
+              p.fotoUrl ? p.fotoUrl : "-"
+            }`
+        )
+      );
+
+    let csv = "Relatório Administrativo - Ponto Digital\n\n";
+    csv += `Gerado em:;${new Date().toLocaleString()}\n\n`;
+    csv += "Resumo Geral\n";
+    csv += "Funcionários Ativos;Pontos Hoje;Férias Pendentes\n";
+    csv += `${totalUsers};${pontosHoje};${feriasPendentes}\n\n`;
+    csv += "Logs Recentes\n";
+    csv += "Tipo;Data/Hora;Foto\n";
+    csv += logsRecentes.join("\n") + "\n";
+
+    res.header("Content-Type", "text/csv");
+    res.attachment(`Relatorio_PontoDigital_${new Date().toISOString().slice(0, 10)}.csv`);
+    res.send(csv);
+  } catch (err) {
+    console.error("Erro ao exportar CSV:", err);
+    res.status(500).json({ error: "Erro ao gerar CSV" });
+  }
 });
 
 // ============================================================
