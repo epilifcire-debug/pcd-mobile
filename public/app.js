@@ -1,8 +1,7 @@
 // ============================================================
-// 🕒 PONTO DIGITAL - APP.JS COMPLETO
+// 🕒 PONTO DIGITAL - APP.JS COMPLETO (v4 CRUD + RH + STATUS)
 // ============================================================
 
-// 🌐 Ajuste conforme o backend hospedado
 const API_URL = window.location.origin;
 let token = null;
 let usuarioAtual = null;
@@ -16,7 +15,7 @@ const boasVindas = document.getElementById("boas-vindas");
 const alertaFerias = document.getElementById("alerta-ferias");
 
 // ============================================================
-// 🔑 LOGIN
+// 🔐 LOGIN
 // ============================================================
 document.getElementById("btn-login").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
@@ -57,7 +56,7 @@ document.getElementById("btn-login").addEventListener("click", async () => {
 });
 
 // ============================================================
-// 🔐 FÉRIAS E ALERTAS
+// 🌴 FÉRIAS AUTOMÁTICAS
 // ============================================================
 async function verificarFerias() {
   try {
@@ -78,7 +77,7 @@ async function verificarFerias() {
 }
 
 // ============================================================
-// 📸 REGISTRAR PONTO
+// 📸 REGISTRAR PONTO COM FOTO
 // ============================================================
 async function capturarFoto() {
   return new Promise((resolve, reject) => {
@@ -89,10 +88,10 @@ async function capturarFoto() {
         video.srcObject = stream;
         video.play();
         const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
+        const ctx = canvas.getContext("2d");
 
         setTimeout(() => {
-          context.drawImage(video, 0, 0, 320, 240);
+          ctx.drawImage(video, 0, 0, 320, 240);
           stream.getTracks().forEach((t) => t.stop());
           canvas.toBlob(resolve, "image/jpeg", 0.8);
         }, 1500);
@@ -124,12 +123,9 @@ async function registrarPonto(tipo) {
 
 document.getElementById("btn-entrada").addEventListener("click", () => registrarPonto("entrada"));
 document.getElementById("btn-saida").addEventListener("click", () => registrarPonto("saida"));
-
 document.getElementById("btn-intervalo").addEventListener("click", () => {
   alert("⏳ Intervalo de 15 minutos iniciado!");
-  setTimeout(() => {
-    alert("⚠️ Intervalo finalizado. Retorne ao trabalho!");
-  }, 15 * 60 * 1000);
+  setTimeout(() => alert("⚠️ Intervalo finalizado. Retorne ao trabalho!"), 15 * 60 * 1000);
 });
 
 // ============================================================
@@ -166,16 +162,27 @@ async function carregarAbaFuncionarios() {
         <td>${u.categoria}</td>
         <td>${u.turno}</td>
         <td>${u.dataAdmissao}</td>
+        <td>
+          <button class="btn-editar" data-id="${u.id}">✏️</button>
+          <button class="btn-excluir" data-id="${u.id}">🗑</button>
+        </td>
       `;
       tbody.appendChild(tr);
     });
+
+    document.querySelectorAll(".btn-editar").forEach((b) =>
+      b.addEventListener("click", () => abrirModalEdicao(b.dataset.id))
+    );
+    document.querySelectorAll(".btn-excluir").forEach((b) =>
+      b.addEventListener("click", () => excluirFuncionario(b.dataset.id))
+    );
   } catch (err) {
     console.error("Erro ao carregar funcionários:", err);
   }
 }
 
 // ============================================================
-// ➕ CADASTRO DE FUNCIONÁRIO (RH/Admin)
+// ➕ CADASTRAR FUNCIONÁRIO
 // ============================================================
 const modal = document.getElementById("modal-cadastro");
 const btnNovo = document.getElementById("btn-novo-funcionario");
@@ -227,7 +234,79 @@ btnSalvar.addEventListener("click", async () => {
 });
 
 // ============================================================
-// 📊 RH - STATUS ADMINISTRATIVO
+// ✏️ EDITAR FUNCIONÁRIO
+// ============================================================
+const modalEditar = document.getElementById("modal-editar");
+const btnSalvarEdicao = document.getElementById("btn-salvar-edicao");
+const btnCancelarEdicao = document.getElementById("btn-cancelar-edicao");
+let funcionarioEditando = null;
+
+async function abrirModalEdicao(id) {
+  const resp = await fetch(API_URL + `/admin/funcionario/${id}`, {
+    headers: { Authorization: "Bearer " + token },
+  });
+  const user = await resp.json();
+  funcionarioEditando = user;
+
+  document.getElementById("edit-nome").value = user.nome;
+  document.getElementById("edit-email").value = user.email;
+  document.getElementById("edit-telefone").value = user.telefone || "";
+  document.getElementById("edit-categoria").value = user.categoria;
+  document.getElementById("edit-turno").value = user.turno || "";
+  modalEditar.classList.remove("oculto");
+}
+
+btnCancelarEdicao.addEventListener("click", () =>
+  modalEditar.classList.add("oculto")
+);
+
+btnSalvarEdicao.addEventListener("click", async () => {
+  const nome = document.getElementById("edit-nome").value.trim();
+  const email = document.getElementById("edit-email").value.trim();
+  const telefone = document.getElementById("edit-telefone").value.trim();
+  const categoria = document.getElementById("edit-categoria").value;
+  const turno = document.getElementById("edit-turno").value;
+
+  try {
+    const resp = await fetch(API_URL + `/admin/funcionario/${funcionarioEditando._id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({ nome, email, telefone, categoria, turno }),
+    });
+    if (!resp.ok) throw new Error("Erro ao atualizar funcionário");
+
+    alert("✅ Funcionário atualizado com sucesso!");
+    modalEditar.classList.add("oculto");
+    carregarAbaFuncionarios();
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+// ============================================================
+// 🗑 EXCLUIR FUNCIONÁRIO
+// ============================================================
+async function excluirFuncionario(id) {
+  if (!confirm("Tem certeza que deseja excluir este funcionário?")) return;
+
+  try {
+    const resp = await fetch(API_URL + `/admin/funcionario/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: "Bearer " + token },
+    });
+    if (!resp.ok) throw new Error("Erro ao excluir funcionário");
+    alert("🗑 Funcionário removido com sucesso!");
+    carregarAbaFuncionarios();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+// ============================================================
+// 📊 STATUS ADMINISTRATIVO
 // ============================================================
 async function carregarStatusAdmin() {
   try {
@@ -247,9 +326,7 @@ async function carregarStatusAdmin() {
     const logs = data.logsRecentes.map((l) => `<li>${l}</li>`).join("");
     document.getElementById("status-logs").innerHTML = logs;
 
-    const fotos = data.fotosRecentes
-      .map((f) => `<img src="${f}" alt="Foto de ponto">`)
-      .join("");
+    const fotos = data.fotosRecentes.map((f) => `<img src="${f}" alt="Foto">`).join("");
     document.getElementById("status-fotos").innerHTML = fotos;
   } catch (err) {
     console.warn("Erro ao carregar status:", err);
@@ -263,7 +340,7 @@ setInterval(() => {
 }, 10000);
 
 // ============================================================
-// 📦 EXPORTAÇÃO CSV (Servidor)
+// 📦 EXPORTAR CSV
 // ============================================================
 document.getElementById("btn-exportar-csv").addEventListener("click", async () => {
   try {
