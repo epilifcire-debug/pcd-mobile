@@ -1,17 +1,17 @@
 // ============================================================
-// 🌐 PONTO DIGITAL - BACKEND COMPLETO + CADASTRO FUNCIONÁRIOS
+// 🌐 PONTO DIGITAL - BACKEND COMPLETO (CRUD + AUTO FIX)
 // ============================================================
 
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
-const crypto = require("crypto");
-const dotenv = require("dotenv");
-const { v2: cloudinary } = require("cloudinary");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import crypto from "crypto";
+import dotenv from "dotenv";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 dotenv.config();
 const app = express();
@@ -27,7 +27,6 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 const storage = new CloudinaryStorage({
   cloudinary,
   params: { folder: "ponto-digital", allowed_formats: ["jpg", "jpeg", "png"] },
@@ -61,39 +60,26 @@ function decrypt(text) {
 // 🧩 MONGODB
 // ============================================================
 mongoose
-  .connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ Conectado ao MongoDB Atlas"))
   .catch((err) => console.error("❌ Erro MongoDB:", err));
 
-const User = mongoose.model(
-  "User",
-  new mongoose.Schema({
-    nome: String,
-    email: String,
-    senhaHash: String,
-    cpfCripto: String,
-    telefoneCripto: String,
-    categoria: String,
-    turno: String,
-    dataAdmissao: { type: Date, default: new Date() },
-  })
-);
-
-const Ponto = mongoose.model(
-  "Ponto",
-  new mongoose.Schema({ userId: String, tipo: String, dataHora: Date, fotoUrl: String })
-);
-
-const Ferias = mongoose.model(
-  "Ferias",
-  new mongoose.Schema({
-    userId: String,
-    dataInicio: String,
-    dataFim: String,
-    dias: Number,
-    status: { type: String, default: "pendente" },
-  })
-);
+const User = mongoose.model("User", new mongoose.Schema({
+  nome: String,
+  email: String,
+  senhaHash: String,
+  cpfCripto: String,
+  telefoneCripto: String,
+  categoria: String,
+  turno: String,
+  dataAdmissao: { type: Date, default: new Date() },
+}));
+const Ponto = mongoose.model("Ponto", new mongoose.Schema({
+  userId: String, tipo: String, dataHora: Date, fotoUrl: String,
+}));
+const Ferias = mongoose.model("Ferias", new mongoose.Schema({
+  userId: String, dataInicio: String, dataFim: String, dias: Number, status: { type: String, default: "pendente" },
+}));
 
 // ============================================================
 // 🌱 SEED USUÁRIOS PADRÃO
@@ -107,7 +93,6 @@ async function seedUsuariosBase() {
       { nome: "Bruno Vendedor", email: "bruno@empresa.com", cpf: "98765432100", telefone: "11988888888", categoria: "VENDEDOR", turno: "MANHA" },
       { nome: "Carla Vendedora", email: "carla@empresa.com", cpf: "11122333444", telefone: "11977777777", categoria: "VENDEDOR", turno: "TARDE" },
     ];
-
     for (const u of baseUsers) {
       const senha = u.cpf.substring(0, 5);
       await new User({
@@ -123,6 +108,30 @@ async function seedUsuariosBase() {
 mongoose.connection.once("open", seedUsuariosBase);
 
 // ============================================================
+// 🧰 CORREÇÃO AUTOMÁTICA DE NOMES CRIPTOGRAFADOS
+// ============================================================
+async function corrigirNomesCriptografados() {
+  console.log("🔍 Verificando nomes criptografados...");
+  const usuarios = await User.find();
+  let corrigidos = 0;
+  for (const u of usuarios) {
+    if (typeof u.nome === "string" && u.nome.includes(":")) {
+      try {
+        const nomeDescript = decrypt(u.nome);
+        if (nomeDescript && nomeDescript !== u.nome) {
+          u.nome = nomeDescript;
+          await u.save();
+          corrigidos++;
+          console.log("✔ Corrigido:", nomeDescript);
+        }
+      } catch {}
+    }
+  }
+  console.log(corrigidos > 0 ? `✅ Corrigidos ${corrigidos} nomes.` : "ℹ️ Nenhum nome criptografado encontrado.");
+}
+corrigirNomesCriptografados();
+
+// ============================================================
 // 🔑 LOGIN + JWT
 // ============================================================
 app.post("/login", async (req, res) => {
@@ -134,13 +143,11 @@ app.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "8h" });
   res.json({ token, usuario: user });
 });
-
 function auth(req, res, next) {
   const header = req.headers.authorization;
   if (!header) return res.status(401).json({ error: "Token ausente" });
   try {
-    const token = header.split(" ")[1];
-    req.userId = jwt.verify(token, process.env.JWT_SECRET).id;
+    req.userId = jwt.verify(header.split(" ")[1], process.env.JWT_SECRET).id;
     next();
   } catch {
     res.status(401).json({ error: "Token inválido" });
@@ -151,12 +158,7 @@ function auth(req, res, next) {
 // 🕒 REGISTRAR PONTO
 // ============================================================
 app.post("/ponto/registrar", auth, upload.single("foto"), async (req, res) => {
-  await new Ponto({
-    userId: req.userId,
-    tipo: req.body.tipo,
-    dataHora: new Date(),
-    fotoUrl: req.file?.path || "",
-  }).save();
+  await new Ponto({ userId: req.userId, tipo: req.body.tipo, dataHora: new Date(), fotoUrl: req.file?.path || "" }).save();
   res.json({ ok: true });
 });
 
@@ -167,38 +169,35 @@ app.get("/ferias/info", auth, async (req, res) => {
   const user = await User.findById(req.userId);
   const adm = new Date(user.dataAdmissao);
   const hoje = new Date();
-  const diasTrabalhados = Math.floor((hoje - adm) / (1000 * 60 * 60 * 24));
+  const diasTrabalhados = Math.floor((hoje - adm) / 86400000);
   const ciclos = Math.floor(diasTrabalhados / 365);
   const proxData = new Date(adm.getTime() + (ciclos + 1) * 365 * 86400000);
   const diasProx = Math.ceil((proxData - hoje) / 86400000);
   const vencidas = diasTrabalhados - ciclos * 365 - 365;
-
   let statusFerias = "OK";
   if (vencidas > 0) statusFerias = `⚠️ Férias vencidas há ${vencidas} dias`;
   else if (diasProx < 30) statusFerias = `⚠️ Férias vencem em ${diasProx} dias`;
-
   res.json({ dataAdmissao: user.dataAdmissao, statusFerias, proximaDataAquisitiva: proxData });
 });
 
 // ============================================================
-// 👥 ADMIN / RH ROTAS
+// 👥 CRUD DE FUNCIONÁRIOS
 // ============================================================
 app.get("/admin/funcionarios", auth, async (req, res) => {
   const users = await User.find();
-  res.json(users.map((u) => ({
-    nome: u.nome,
-    categoria: u.categoria,
-    turno: u.turno || "-",
+  res.json(users.map(u => ({
+    id: u._id, nome: u.nome, categoria: u.categoria, turno: u.turno || "-",
     dataAdmissao: u.dataAdmissao?.toISOString().split("T")[0],
   })));
 });
 
-// ➕ Criar novo funcionário
-app.post("/admin/criar-funcionario", auth, async (req, res) => {
-  const user = await User.findById(req.userId);
-  if (!["RH", "ADMIN"].includes(user.categoria))
-    return res.status(403).json({ error: "Acesso negado" });
+app.get("/admin/funcionario/:id", auth, async (req, res) => {
+  const u = await User.findById(req.params.id);
+  if (!u) return res.status(404).json({ error: "Usuário não encontrado" });
+  res.json({ _id: u._id, nome: u.nome, email: u.email, telefone: decrypt(u.telefoneCripto), categoria: u.categoria, turno: u.turno });
+});
 
+app.post("/admin/criar-funcionario", auth, async (req, res) => {
   const { nome, email, cpf, telefone, categoria, turno } = req.body;
   const senhaGerada = cpf.substring(0, 5);
   await new User({
@@ -209,35 +208,52 @@ app.post("/admin/criar-funcionario", auth, async (req, res) => {
     categoria,
     turno: categoria === "VENDEDOR" ? turno : undefined,
   }).save();
-
   res.json({ ok: true, senhaGerada });
 });
 
-// 📊 STATUS ADMIN + EXPORTAÇÃO CSV
+app.put("/admin/funcionario/:id", auth, async (req, res) => {
+  const { nome, email, telefone, categoria, turno } = req.body;
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+  user.nome = nome || user.nome;
+  user.email = email || user.email;
+  user.telefoneCripto = encrypt(telefone);
+  user.categoria = categoria;
+  user.turno = turno || null;
+  await user.save();
+  res.json({ ok: true });
+});
+
+app.delete("/admin/funcionario/:id", auth, async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.id);
+  if (!user) return res.status(404).json({ error: "Usuário não encontrado" });
+  res.json({ ok: true });
+});
+
+// ============================================================
+// 📊 STATUS + EXPORTAÇÃO
+// ============================================================
 app.get("/admin/status", auth, async (req, res) => {
   const totalUsers = await User.countDocuments();
   const pontosHoje = await Ponto.countDocuments({ dataHora: { $gte: new Date().setHours(0, 0, 0, 0) } });
   const feriasPendentes = await Ferias.countDocuments({ status: "pendente" });
-  const logsRecentes = (await Ponto.find().sort({ dataHora: -1 }).limit(10)).map(
-    (p) => `${p.tipo.toUpperCase()} - ${new Date(p.dataHora).toLocaleString()} (${p.fotoUrl ? "📷" : "—"})`
+  const logsRecentes = (await Ponto.find().sort({ dataHora: -1 }).limit(10)).map(p =>
+    `${p.tipo.toUpperCase()} - ${new Date(p.dataHora).toLocaleString()} (${p.fotoUrl ? "📷" : "—"})`
   );
-  const fotosRecentes = (await Ponto.find({ fotoUrl: { $ne: "" } }).sort({ dataHora: -1 }).limit(5)).map(
-    (p) => p.fotoUrl
-  );
+  const fotosRecentes = (await Ponto.find({ fotoUrl: { $ne: "" } }).sort({ dataHora: -1 }).limit(5)).map(p => p.fotoUrl);
   res.json({ funcionariosAtivos: totalUsers, pontosHoje, feriasPendentes, logsRecentes, fotosRecentes, ultimaAtualizacao: new Date() });
 });
 
 app.get("/admin/exportar", auth, async (req, res) => {
   const totalUsers = await User.countDocuments();
   const pontosHoje = await Ponto.countDocuments({ dataHora: { $gte: new Date().setHours(0, 0, 0, 0) } });
-  const feriasPendentes = await Ferias.countDocuments({ status: "pendente" });
   const logsRecentes = (await Ponto.find().sort({ dataHora: -1 }).limit(10)).map(
     (p) => `${p.tipo.toUpperCase()};${new Date(p.dataHora).toLocaleString()};${p.fotoUrl || "-"}`
   );
   let csv = "Relatório Administrativo - Ponto Digital\n\n";
   csv += `Gerado em:;${new Date().toLocaleString()}\n\n`;
-  csv += "Funcionários;Pontos Hoje;Férias Pendentes\n";
-  csv += `${totalUsers};${pontosHoje};${feriasPendentes}\n\n`;
+  csv += "Funcionários;Pontos Hoje\n";
+  csv += `${totalUsers};${pontosHoje}\n\n`;
   csv += "Tipo;Data/Hora;Foto\n";
   csv += logsRecentes.join("\n");
   res.header("Content-Type", "text/csv");
