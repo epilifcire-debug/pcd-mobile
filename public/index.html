@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,7 +10,7 @@
 </head>
 <body>
 
-  <!-- ======= CABEÇALHO FIXO ======= -->
+  <!-- ======= CABEÇALHO ======= -->
   <header class="topo">
     <div class="logos">
       <img src="images.png" alt="Logo 1" class="logo-img" />
@@ -18,18 +19,18 @@
     <h1>Ponto Digital</h1>
   </header>
 
-  <!-- ======= TELA DE LOGIN ======= -->
+  <!-- ======= LOGIN ======= -->
   <section id="login-section" class="tela">
     <div class="card">
       <h2>Login</h2>
-      <input type="email" id="email" placeholder="E-mail" required />
-      <input type="password" id="senha" placeholder="Senha" required />
+      <input type="email" id="email" placeholder="E-mail" />
+      <input type="password" id="senha" placeholder="Senha" />
       <button id="btn-login">Entrar</button>
-      <p class="msg-erro" id="msg-erro"></p>
+      <p id="msg-erro" class="msg-erro"></p>
     </div>
   </section>
 
-  <!-- ======= TELA FUNCIONÁRIO ======= -->
+  <!-- ======= FUNCIONÁRIO ======= -->
   <section id="ponto-section" class="tela oculto">
     <div class="card">
       <h2 id="boas-vindas">Olá, Funcionário</h2>
@@ -58,9 +59,12 @@
         <button class="tab-btn" data-tab="tab-status">📊 Status</button>
       </div>
 
-      <!-- ======= ABA FUNCIONÁRIOS ======= -->
+      <!-- ===== FUNCIONÁRIOS ===== -->
       <div id="tab-funcionarios" class="tab-content active">
-        <h3>Lista de Funcionários</h3>
+        <div class="cadastro-func">
+          <button id="btn-novo-funcionario" class="btn-novo">+ Cadastrar Funcionário</button>
+        </div>
+
         <table id="tabela-funcionarios">
           <thead>
             <tr>
@@ -74,29 +78,54 @@
         </table>
       </div>
 
-      <!-- ======= ABA PONTOS ======= -->
+      <!-- ===== MODAL DE CADASTRO ===== -->
+      <div id="modal-cadastro" class="modal oculto">
+        <div class="modal-content">
+          <h3>Novo Funcionário</h3>
+          <input id="cad-nome" placeholder="Nome completo" />
+          <input id="cad-email" placeholder="E-mail" />
+          <input id="cad-cpf" placeholder="CPF (somente números)" />
+          <input id="cad-telefone" placeholder="Telefone" />
+          <select id="cad-categoria">
+            <option value="">Categoria</option>
+            <option value="RH">RH</option>
+            <option value="VENDEDOR">Vendedor</option>
+          </select>
+          <select id="cad-turno" class="oculto">
+            <option value="">Turno</option>
+            <option value="MANHA">Manhã (10:00–16:00)</option>
+            <option value="TARDE">Tarde (16:00–22:00)</option>
+          </select>
+          <div class="modal-actions">
+            <button id="btn-salvar-func">Salvar</button>
+            <button id="btn-fechar-modal" class="cancelar">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PONTOS ===== -->
       <div id="tab-pontos" class="tab-content">
         <h3>Registros de Ponto</h3>
         <p>Em breve: filtro por data e funcionário.</p>
       </div>
 
-      <!-- ======= ABA FÉRIAS ======= -->
+      <!-- ===== FÉRIAS ===== -->
       <div id="tab-ferias" class="tab-content">
         <h3>Solicitações de Férias</h3>
         <p>Gerenciamento de pedidos pendentes em breve.</p>
       </div>
 
-      <!-- ======= ABA BANCO DE HORAS ======= -->
+      <!-- ===== BANCO DE HORAS ===== -->
       <div id="tab-banco" class="tab-content">
         <h3>Banco de Horas</h3>
         <p>Visualização consolidada em breve.</p>
       </div>
 
-      <!-- ======= ABA STATUS ADMINISTRATIVO ======= -->
+      <!-- ===== STATUS ADMIN ===== -->
       <div id="tab-status" class="tab-content">
         <div class="status-header">
           <h3>Status Administrativo</h3>
-          <button id="btn-exportar-csv" class="export-btn">⬇️ Exportar Relatório CSV</button>
+          <button id="btn-exportar-csv" class="export-btn">⬇️ Exportar CSV</button>
         </div>
         <div id="status-resumo"></div>
         <hr class="divider" />
