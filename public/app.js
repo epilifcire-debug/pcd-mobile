@@ -1,13 +1,13 @@
 // ============================================================
-// 🕒 PONTO DIGITAL - APP FRONTEND
+// 🕒 PONTO DIGITAL - APP.JS COMPLETO
 // ============================================================
 
-// 🌐 Ajuste conforme o backend (Render ou local)
+// 🌐 Ajuste conforme o backend hospedado
 const API_URL = window.location.origin;
 let token = null;
 let usuarioAtual = null;
 
-// ======= Seletores =======
+// ======= SELETORES =======
 const loginSection = document.getElementById("login-section");
 const pontoSection = document.getElementById("ponto-section");
 const painelRH = document.getElementById("painel-rh");
@@ -15,7 +15,9 @@ const msgErro = document.getElementById("msg-erro");
 const boasVindas = document.getElementById("boas-vindas");
 const alertaFerias = document.getElementById("alerta-ferias");
 
-// ======= LOGIN =======
+// ============================================================
+// 🔑 LOGIN
+// ============================================================
 document.getElementById("btn-login").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
@@ -55,16 +57,15 @@ document.getElementById("btn-login").addEventListener("click", async () => {
 });
 
 // ============================================================
-// 🔐 Funções auxiliares
+// 🔐 FÉRIAS E ALERTAS
 // ============================================================
 async function verificarFerias() {
   try {
     const resp = await fetch(API_URL + "/ferias/info", {
       headers: { Authorization: "Bearer " + token },
     });
-    if (!resp.ok) return;
-
     const data = await resp.json();
+
     if (data.statusFerias && data.statusFerias.startsWith("⚠️")) {
       alertaFerias.classList.remove("oculto");
       alertaFerias.textContent = data.statusFerias;
@@ -77,11 +78,12 @@ async function verificarFerias() {
 }
 
 // ============================================================
-// 📸 Registro de Ponto
+// 📸 REGISTRAR PONTO
 // ============================================================
 async function capturarFoto() {
   return new Promise((resolve, reject) => {
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
       .then((stream) => {
         const video = document.createElement("video");
         video.srcObject = stream;
@@ -114,7 +116,7 @@ async function registrarPonto(tipo) {
 
     const data = await resp.json();
     if (resp.ok) alert("✅ Ponto registrado com sucesso!");
-    else alert("Erro ao registrar ponto: " + (data.error || "Falha desconhecida"));
+    else alert("Erro: " + (data.error || "Falha desconhecida"));
   } catch (err) {
     alert("Erro: " + err.message);
   }
@@ -131,7 +133,7 @@ document.getElementById("btn-intervalo").addEventListener("click", () => {
 });
 
 // ============================================================
-// 🧩 Painel RH - Abas
+// 🧩 PAINEL RH - ABAS
 // ============================================================
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -146,7 +148,7 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 });
 
 // ============================================================
-// 👥 RH - Lista de Funcionários
+// 👥 RH - LISTA DE FUNCIONÁRIOS
 // ============================================================
 async function carregarAbaFuncionarios() {
   try {
@@ -173,14 +175,65 @@ async function carregarAbaFuncionarios() {
 }
 
 // ============================================================
-// 📊 RH - Status Administrativo
+// ➕ CADASTRO DE FUNCIONÁRIO (RH/Admin)
+// ============================================================
+const modal = document.getElementById("modal-cadastro");
+const btnNovo = document.getElementById("btn-novo-funcionario");
+const btnSalvar = document.getElementById("btn-salvar-func");
+const btnFechar = document.getElementById("btn-fechar-modal");
+const selectCategoria = document.getElementById("cad-categoria");
+const selectTurno = document.getElementById("cad-turno");
+
+btnNovo.addEventListener("click", () => modal.classList.remove("oculto"));
+btnFechar.addEventListener("click", () => modal.classList.add("oculto"));
+
+selectCategoria.addEventListener("change", () => {
+  if (selectCategoria.value === "VENDEDOR") selectTurno.classList.remove("oculto");
+  else selectTurno.classList.add("oculto");
+});
+
+btnSalvar.addEventListener("click", async () => {
+  const nome = document.getElementById("cad-nome").value.trim();
+  const email = document.getElementById("cad-email").value.trim();
+  const cpf = document.getElementById("cad-cpf").value.trim();
+  const telefone = document.getElementById("cad-telefone").value.trim();
+  const categoria = selectCategoria.value;
+  const turno = selectTurno.value;
+
+  if (!nome || !email || !cpf || !telefone || !categoria) {
+    alert("Preencha todos os campos obrigatórios.");
+    return;
+  }
+
+  try {
+    const resp = await fetch(API_URL + "/admin/criar-funcionario", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({ nome, email, cpf, telefone, categoria, turno }),
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Erro ao cadastrar");
+
+    alert(`✅ Funcionário cadastrado!\nSenha: ${data.senhaGerada}`);
+    modal.classList.add("oculto");
+    carregarAbaFuncionarios();
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+// ============================================================
+// 📊 RH - STATUS ADMINISTRATIVO
 // ============================================================
 async function carregarStatusAdmin() {
   try {
     const resp = await fetch(API_URL + "/admin/status", {
       headers: { Authorization: "Bearer " + token },
     });
-    if (!resp.ok) return;
     const data = await resp.json();
 
     const resumo = `
@@ -203,14 +256,14 @@ async function carregarStatusAdmin() {
   }
 }
 
-// Atualização automática do status (a cada 10s)
+// Atualização automática da aba “Status” a cada 10s
 setInterval(() => {
   const abaAtiva = document.querySelector(".tab-content.active");
   if (abaAtiva && abaAtiva.id === "tab-status") carregarStatusAdmin();
 }, 10000);
 
 // ============================================================
-// 📦 Exportação CSV (via servidor)
+// 📦 EXPORTAÇÃO CSV (Servidor)
 // ============================================================
 document.getElementById("btn-exportar-csv").addEventListener("click", async () => {
   try {
