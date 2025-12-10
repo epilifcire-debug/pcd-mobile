@@ -1,5 +1,5 @@
 // ============================================================
-// 🌐 PONTO DIGITAL - SERVER.JS COMPLETO (2025)
+// 🌐 PONTO DIGITAL - SERVER.JS FINAL (2025)
 // ============================================================
 
 import express from "express";
@@ -12,13 +12,21 @@ import crypto from "crypto";
 import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 const app = express();
 
+// ============================================================
+// 📂 SERVE FRONTEND
+// ============================================================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use(express.json());
 app.use(cors());
-app.use(express.static("public"));
 
 // ============================================================
 // ☁️ CLOUDINARY
@@ -42,6 +50,7 @@ const upload = multer({ storage });
 // 🔐 CRIPTOGRAFIA AES-256
 // ============================================================
 const ENCRYPT_KEY = process.env.ENCRYPT_KEY;
+
 function encrypt(text) {
   if (!text) return "";
   const iv = crypto.randomBytes(16);
@@ -118,19 +127,19 @@ const Ponto = mongoose.model("Ponto", pontoSchema);
 const Ferias = mongoose.model("Ferias", feriasSchema);
 
 // ============================================================
-// 🌱 SEED INICIAL + CORREÇÃO DE ÍNDICES DUPLICADOS
+// 🌱 SEED + CORREÇÃO DE ÍNDICE DUPLICADO + ADMIN
 // ============================================================
 async function seed() {
   try {
-    // 🧹 Remove índice duplicado se existir
+    // 🔹 Remove índice duplicado 'userId_1' se existir
     const indexes = await mongoose.connection.db.collection("users").indexes();
     const dupIndex = indexes.find((idx) => idx.name === "userId_1");
     if (dupIndex) {
       await mongoose.connection.db.collection("users").dropIndex("userId_1");
-      console.log("🧩 Índice duplicado 'userId_1' removido com sucesso!");
+      console.log("🧩 Índice duplicado 'userId_1' removido!");
     }
 
-    // Evita duplicar seeds
+    // 🔹 Evita duplicar seeds
     if (await User.countDocuments()) return;
 
     console.log("🌱 Criando usuários padrão...");
@@ -165,33 +174,36 @@ async function seed() {
       }).save();
       console.log(`Usuário: ${u.email} | senha: ${senha}`);
     }
-
-    // 👑 Usuário ADMIN Master
-    const adminEmail = "admin@empresa.com";
-    const adminSenha = "admin123";
-    const adminExiste = await User.findOne({ email: adminEmail });
-
-    if (!adminExiste) {
-      await new User({
-        nome: "Administrador Master",
-        email: adminEmail,
-        senhaHash: bcrypt.hashSync(adminSenha, 10),
-        categoria: "ADMIN",
-        telefoneCripto: encrypt("11900000000"),
-        cpfCripto: encrypt("00000000000"),
-        dataAdmissao: new Date(),
-      }).save();
-
-      console.log(`👑 Admin criado: ${adminEmail} | senha: ${adminSenha}`);
-    } else {
-      console.log("👑 Admin já existente no banco.");
-    }
   } catch (err) {
     console.error("❌ Erro no seed:", err);
   }
 }
 
-mongoose.connection.once("open", seed);
+// 🔹 Garante que o Admin Master exista SEMPRE
+async function verificarAdmin() {
+  const adminEmail = "admin@empresa.com";
+  const admin = await User.findOne({ email: adminEmail });
+  if (!admin) {
+    const senha = "admin123";
+    await new User({
+      nome: "Administrador Master",
+      email: adminEmail,
+      senhaHash: bcrypt.hashSync(senha, 10),
+      categoria: "ADMIN",
+      telefoneCripto: encrypt("11900000000"),
+      cpfCripto: encrypt("00000000000"),
+      dataAdmissao: new Date(),
+    }).save();
+    console.log(`👑 Admin recriado: ${adminEmail} | senha: ${senha}`);
+  } else {
+    console.log("👑 Admin existente confirmado.");
+  }
+}
+
+mongoose.connection.once("open", async () => {
+  await seed();
+  await verificarAdmin();
+});
 
 // ============================================================
 // 🔑 LOGIN
@@ -200,7 +212,7 @@ function dentroDoHorarioPermitido(user) {
   const agora = new Date();
   const h = agora.getHours() + agora.getMinutes() / 60;
   const hoje = agora.getDay();
-  const tolerancia = 0.25; // 15 minutos
+  const tolerancia = 0.25;
   const feriados = ["12-24", "12-31"];
   const dia = `${String(agora.getMonth() + 1).padStart(2, "0")}-${String(
     agora.getDate()
