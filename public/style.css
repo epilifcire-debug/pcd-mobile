@@ -27,13 +27,14 @@
 }
 
 /* ========================================================= */
-/* 🔐 LOGIN */
+/* 🔐 LOGIN E SEÇÕES */
 /* ========================================================= */
 .section {
   margin-top: 120px;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: opacity 0.3s ease;
 }
 
 .card {
@@ -132,6 +133,7 @@ button:hover {
   margin-right: 10px;
   border: none;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .btn-logout:hover {
@@ -200,4 +202,15 @@ button:hover {
     width: 95%;
     padding: 20px;
   }
+}
+
+/* ========================================================= */
+/* 🚫 OCULTAR SEÇÕES */
+/* ========================================================= */
+.oculto {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
 }
