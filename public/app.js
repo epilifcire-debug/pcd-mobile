@@ -1,14 +1,12 @@
 // ============================================================
-// 🕒 PONTO DIGITAL - FRONTEND APP.JS FINAL (2025)
+// 🕒 PONTO DIGITAL FRONTEND - APP FINAL (2025)
 // ============================================================
 
-// 🔗 Conexão com o backend hospedado no Render
 const API_URL = "https://ponto-digital-d207.onrender.com";
 
 let token = null;
 let usuarioAtual = null;
 
-// ===== SELETORES =====
 const loginSection = document.getElementById("login-section");
 const pontoSection = document.getElementById("ponto-section");
 const painelRH = document.getElementById("painel-rh");
@@ -31,7 +29,7 @@ document.getElementById("btn-login").addEventListener("click", async () => {
       body: JSON.stringify({ email, senha }),
     });
     const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || "Erro ao fazer login.");
+    if (!resp.ok) throw new Error(data.error || "Erro ao fazer login no servidor.");
 
     token = data.token;
     usuarioAtual = data.usuario;
@@ -41,8 +39,6 @@ document.getElementById("btn-login").addEventListener("click", async () => {
       loginSection.classList.add("oculto");
       painelRH.classList.remove("oculto");
       carregarAbaFuncionarios();
-
-      // Mostrar botão “Novo Admin” se for ADMIN
       if (usuarioAtual.categoria === "ADMIN") {
         document.getElementById("btn-novo-admin").classList.remove("oculto");
       }
@@ -66,29 +62,23 @@ function logout() {
   loginSection.classList.remove("oculto");
   pontoSection.classList.add("oculto");
   painelRH.classList.add("oculto");
-  document.getElementById("email").value = "";
-  document.getElementById("senha").value = "";
 }
 
 document.getElementById("btn-logout-func").addEventListener("click", logout);
 document.getElementById("btn-logout-rh").addEventListener("click", logout);
 
 // ============================================================
-// 🌴 FÉRIAS - FUNCIONÁRIO
+// 🌴 FÉRIAS
 // ============================================================
 async function verificarFerias() {
-  try {
-    const resp = await fetch(API_URL + "/ferias/info", {
-      headers: { Authorization: "Bearer " + token },
-    });
-    const data = await resp.json();
-    if (data.statusFerias && data.statusFerias.startsWith("⚠️")) {
-      alertaFerias.classList.remove("oculto");
-      alertaFerias.textContent = data.statusFerias;
-    } else alertaFerias.classList.add("oculto");
-  } catch (err) {
-    console.error("Erro ao verificar férias:", err);
-  }
+  const resp = await fetch(API_URL + "/ferias/info", {
+    headers: { Authorization: "Bearer " + token },
+  });
+  const data = await resp.json();
+  if (data.statusFerias && data.statusFerias.startsWith("⚠️")) {
+    alertaFerias.classList.remove("oculto");
+    alertaFerias.textContent = data.statusFerias;
+  } else alertaFerias.classList.add("oculto");
 }
 
 // ============================================================
@@ -96,8 +86,7 @@ async function verificarFerias() {
 // ============================================================
 async function capturarFoto() {
   return new Promise((resolve, reject) => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
+    navigator.mediaDevices.getUserMedia({ video: true })
       .then((stream) => {
         const video = document.createElement("video");
         video.srcObject = stream;
@@ -120,16 +109,13 @@ async function registrarPonto(tipo) {
     const formData = new FormData();
     formData.append("tipo", tipo);
     if (fotoBlob) formData.append("foto", fotoBlob, "ponto.jpg");
-
     const resp = await fetch(API_URL + "/ponto/registrar", {
       method: "POST",
       headers: { Authorization: "Bearer " + token },
       body: formData,
     });
-
-    const data = await resp.json();
     if (resp.ok) alert("✅ Ponto registrado!");
-    else alert("Erro: " + (data.error || "Falha"));
+    else alert("Erro ao registrar ponto.");
   } catch (err) {
     alert("Erro: " + err.message);
   }
@@ -178,13 +164,6 @@ async function carregarAbaFuncionarios() {
       </td>`;
     tbody.appendChild(tr);
   });
-
-  document.querySelectorAll(".btn-editar").forEach((b) =>
-    b.addEventListener("click", () => abrirModalEdicao(b.dataset.id))
-  );
-  document.querySelectorAll(".btn-excluir").forEach((b) =>
-    b.addEventListener("click", () => excluirFuncionario(b.dataset.id))
-  );
 }
 
 // ============================================================
@@ -217,68 +196,3 @@ document.getElementById("btn-salvar-func").addEventListener("click", async () =>
     carregarAbaFuncionarios();
   } else alert(data.error || "Erro ao cadastrar funcionário.");
 });
-
-// ============================================================
-// 👑 CRIAR NOVO ADMIN
-// ============================================================
-document.getElementById("btn-novo-admin").addEventListener("click", async () => {
-  const nome = prompt("Nome do novo administrador:");
-  const email = prompt("E-mail do novo administrador:");
-  if (!nome || !email) return alert("Dados incompletos.");
-
-  const resp = await fetch(API_URL + "/admin/criar-funcionario", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({
-      nome,
-      email,
-      cpf: "00000000000",
-      telefone: "00000000000",
-      categoria: "ADMIN",
-      dataAdmissao: new Date(),
-    }),
-  });
-
-  const data = await resp.json();
-  if (resp.ok) alert(`✅ Novo admin criado!\nSenha: ${data.senhaGerada}`);
-  else alert("Erro: " + (data.error || "Falha ao criar admin"));
-});
-
-// ============================================================
-// ✏️ EDITAR E EXCLUIR
-// ============================================================
-async function abrirModalEdicao(id) {
-  const resp = await fetch(API_URL + "/admin/funcionarios", {
-    headers: { Authorization: "Bearer " + token },
-  });
-  const data = await resp.json();
-  const user = data.find((u) => u._id === id);
-  document.getElementById("edit-nome").value = user.nome;
-  document.getElementById("edit-email").value = user.email;
-  document.getElementById("edit-telefone").value = user.telefone || "";
-  document.getElementById("edit-categoria").value = user.categoria;
-  document.getElementById("edit-turno").value = user.turno || "";
-  document.getElementById("edit-ferias-tipo").value = user.formaUltimasFerias || "";
-  document.getElementById("edit-ferias-inicio").value = user.dataUltimasFeriasInicio
-    ? new Date(user.dataUltimasFeriasInicio).toISOString().split("T")[0]
-    : "";
-  document.getElementById("edit-ferias-fim").value = user.dataUltimasFeriasFim
-    ? new Date(user.dataUltimasFeriasFim).toISOString().split("T")[0]
-    : "";
-  modalEditar.classList.remove("oculto");
-}
-
-async function excluirFuncionario(id) {
-  if (!confirm("Tem certeza que deseja excluir?")) return;
-  const resp = await fetch(API_URL + `/admin/funcionario/${id}`, {
-    method: "DELETE",
-    headers: { Authorization: "Bearer " + token },
-  });
-  if (resp.ok) {
-    alert("🗑 Funcionário removido!");
-    carregarAbaFuncionarios();
-  } else alert("Erro ao excluir funcionário.");
-}
